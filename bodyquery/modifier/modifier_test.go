@@ -8,22 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConvertAnyToString(t *testing.T) {
-	var v interface{}
-
-	v = float64(15)
-	require.Equal(t, "15", convertAnyToString(v))
-
-	v = "hello"
-	require.Equal(t, "hello", convertAnyToString(v))
-
-	v = true
-	require.Equal(t, "true", convertAnyToString(v))
-
-	v = float64(12.345)
-	require.Equal(t, "12.345", convertAnyToString(v))
-}
-
 func TestGetValueFromKeyInBody(t *testing.T) {
 	requestBody := make(map[string]interface{})
 	ccc := make(map[string]interface{})

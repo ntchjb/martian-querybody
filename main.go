@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/luraproject/lura/logging"
-	_ "github.com/ntchjb/martian-querybody/querybody"
+	_ "github.com/ntchjb/martian-querybody/bodyquery"
+	_ "github.com/ntchjb/martian-querybody/query"
 )
 
-var ClientRegisterer = registerer("martian-bodyquery")
+var ClientRegisterer = registerer("martian-querybody")
 
 type registerer string
 

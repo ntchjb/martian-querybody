@@ -1,8 +1,8 @@
-package querybody
+package bodyquery
 
 import (
 	"github.com/google/martian/parse"
-	"github.com/ntchjb/martian-querybody/querybody/modifier"
+	"github.com/ntchjb/martian-querybody/bodyquery/modifier"
 )
 
 func init() {

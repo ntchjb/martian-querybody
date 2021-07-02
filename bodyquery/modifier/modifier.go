@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
+
+	"github.com/ntchjb/martian-querybody/util"
 )
 
 type Config struct {
@@ -18,22 +19,9 @@ type NewValue struct {
 	Value interface{} `json:"value"`
 }
 
-type QueryBodyModifier struct {
+type BodyQueryModifier struct {
 	keyMapping   map[string]string
 	valueMapping map[string]NewValue
-}
-
-func convertAnyToString(v interface{}) string {
-	switch result := v.(type) {
-	case bool:
-		return strconv.FormatBool(result)
-	case float64:
-		return strconv.FormatFloat(result, 'f', -1, 64)
-	case string:
-		return result
-	default:
-		return ""
-	}
 }
 
 func getValueFromKeyInBody(requestBody map[string]interface{}, key string) []string {
@@ -50,11 +38,11 @@ loop:
 			currentValue = result
 		case []interface{}:
 			for _, el := range result {
-				finalResult = append(finalResult, convertAnyToString(el))
+				finalResult = append(finalResult, util.ConvertAnyToString(el))
 			}
 			break loop
 		default:
-			finalResult = append(finalResult, convertAnyToString(result))
+			finalResult = append(finalResult, util.ConvertAnyToString(result))
 			break loop
 		}
 	}
@@ -63,7 +51,7 @@ loop:
 }
 
 // ModifyRequest converts body to query parameters based on given key name mapping
-func (m *QueryBodyModifier) ModifyRequest(req *http.Request) error {
+func (m *BodyQueryModifier) ModifyRequest(req *http.Request) error {
 	decoder := json.NewDecoder(req.Body)
 	var requestBody map[string]interface{}
 	err := decoder.Decode(&requestBody)
@@ -76,7 +64,7 @@ func (m *QueryBodyModifier) ModifyRequest(req *http.Request) error {
 		for i, value := range values {
 			if value != "" {
 				if newVal, ok := m.valueMapping[newKey]; ok && newVal.Index == i {
-					query.Add(newKey, convertAnyToString(newVal.Value))
+					query.Add(newKey, util.ConvertAnyToString(newVal.Value))
 					continue
 				}
 				query.Add(newKey, value)
@@ -88,13 +76,13 @@ func (m *QueryBodyModifier) ModifyRequest(req *http.Request) error {
 	return nil
 }
 
-func FromJSON(b []byte) (*QueryBodyModifier, error) {
+func FromJSON(b []byte) (*BodyQueryModifier, error) {
 	cfg := &Config{}
 	if err := json.Unmarshal(b, cfg); err != nil {
 		return nil, err
 	}
 
-	return &QueryBodyModifier{
+	return &BodyQueryModifier{
 		keyMapping:   cfg.KeyMapping,
 		valueMapping: cfg.ValueMapping,
 	}, nil
