@@ -28,9 +28,6 @@ func convertAnyToString(v interface{}) string {
 	case bool:
 		return strconv.FormatBool(result)
 	case float64:
-		// if result == math.Trunc(result) {
-		// 	return strconv.FormatInt(int64(result), 10)
-		// }
 		return strconv.FormatFloat(result, 'f', -1, 64)
 	case string:
 		return result
