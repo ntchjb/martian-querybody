@@ -9,11 +9,18 @@ import (
 )
 
 type Config struct {
-	KeyMapping map[string]string `json:"key_mapping"`
+	ValueMapping map[string]NewValue `json:"value_map"`
+	KeyMapping   map[string]string   `json:"key_map"`
+}
+
+type NewValue struct {
+	Index int         `json:"index"`
+	Value interface{} `json:"value"`
 }
 
 type QueryBodyModifier struct {
-	keyMapping map[string]string
+	keyMapping   map[string]string
+	valueMapping map[string]NewValue
 }
 
 func convertAnyToString(v interface{}) string {
@@ -69,8 +76,12 @@ func (m *QueryBodyModifier) ModifyRequest(req *http.Request) error {
 	query := req.URL.Query()
 	for oldKey, newKey := range m.keyMapping {
 		values := getValueFromKeyInBody(requestBody, oldKey)
-		for _, value := range values {
+		for i, value := range values {
 			if value != "" {
+				if newVal, ok := m.valueMapping[newKey]; ok && newVal.Index == i {
+					query.Add(newKey, convertAnyToString(newVal.Value))
+					continue
+				}
 				query.Add(newKey, value)
 			}
 		}
@@ -87,6 +98,7 @@ func FromJSON(b []byte) (*QueryBodyModifier, error) {
 	}
 
 	return &QueryBodyModifier{
-		keyMapping: cfg.KeyMapping,
+		keyMapping:   cfg.KeyMapping,
+		valueMapping: cfg.ValueMapping,
 	}, nil
 }

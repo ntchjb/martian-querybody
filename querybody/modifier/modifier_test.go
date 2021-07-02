@@ -55,17 +55,34 @@ func TestModifyRequest(t *testing.T) {
 			14.5,
 			16
 		],
-		"key3": "valueKey3"
+		"key3": "valueKey3",
+		"key4": "valueKey4",
+		"key5": [
+			1,
+			2,
+			3
+		]
 	}
 	`)))
 	require.NoError(t, err)
 
 	cfg := `
 	{
-		"key_mapping": {
+		"key_map": {
 			"key1.key2": "key12",
 			"key2": "key2",
-			"key3": "newKey3"
+			"key3": "newKey3",
+			"key4": "key4",
+			"key5": "key5"
+		},
+		"value_map": {
+			"key4": {
+				"value": "valueKey41"
+			},
+			"key5": {
+				"value": "hello",
+				"index": 2
+			}
 		}
 	}
 	`
@@ -78,4 +95,6 @@ func TestModifyRequest(t *testing.T) {
 	require.Equal(t, "valueKey2", query["key12"][0])
 	require.Equal(t, []string{"13", "14.5", "16"}, query["key2"])
 	require.Equal(t, "valueKey3", query["newKey3"][0])
+	require.Equal(t, "valueKey41", query["key4"][0])
+	require.Equal(t, []string{"1", "2", "hello"}, query["key5"])
 }
