@@ -23,7 +23,8 @@ func TestModifyResponse(t *testing.T) {
 			"key4": "valueKey4",
 			"key5": {
 				"key55": "valueKey55"
-			}
+			},
+			"key6": "valueKey6"
 		}`)),
 	}
 
@@ -36,7 +37,8 @@ func TestModifyResponse(t *testing.T) {
 				"key1": "key1.key2",
 				"key3": "key33.key3",
 				"key4": "key33.key4",
-				"key5.key55": "key55"
+				"key5.key55": "key55",
+				"key6": "key66"
 			}, {
 				"key5": ""
 			}
@@ -50,5 +52,5 @@ func TestModifyResponse(t *testing.T) {
 
 	bodyBytes, err := ioutil.ReadAll(response.Body)
 	require.NoError(t, err)
-	require.Equal(t, string(bodyBytes), "{\"key1\":{\"key2\":\"valueKey1\"},\"key2\":{\"key22\":\"valueKey22\"},\"key33\":{\"key3\":\"valueKey3\",\"key4\":\"valueKey4\"},\"key55\":\"valueKey55\"}")
+	require.Equal(t, "{\"key1\":{\"key2\":\"valueKey1\"},\"key2\":{\"key22\":\"valueKey22\"},\"key33\":{\"key3\":\"valueKey3\",\"key4\":\"valueKey4\"},\"key55\":\"valueKey55\",\"key66\":\"valueKey6\"}", string(bodyBytes))
 }
