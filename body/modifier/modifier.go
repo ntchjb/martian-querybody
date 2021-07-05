@@ -6,19 +6,28 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ntchjb/martian-querybody/util"
 )
 
 type Config struct {
-	Schema       []map[string]string               `json:"schema"`
-	ValueMapping map[string]map[string]interface{} `json:"value_map"`
+	Schema          []map[string]string               `json:"schema"`
+	ValueMapping    map[string]map[string]interface{} `json:"value_map"`
+	ValueConversion map[string]DataType               `json:"value_convert"`
+}
+
+type DataType struct {
+	From string `json:"from"`
+	To   string `json:"to"`
 }
 
 type BodyModifier struct {
-	schema       []map[string]string
-	valueMapping map[string]map[string]interface{}
+	schema          []map[string]string
+	valueMapping    map[string]map[string]interface{}
+	valueConversion map[string]DataType
 }
 
 func getKeyPosition(m map[string]interface{}, key string) (map[string]interface{}, string) {
@@ -62,6 +71,24 @@ func mapValue(requestBody map[string]interface{}, key string, valMap map[string]
 	if newVal, ok := valMap[oldVal]; ok {
 		mapping[k] = newVal
 	}
+}
+
+func convertValue(requestBody map[string]interface{}, key string, conversionType DataType) error {
+	mapping, k := getKeyPosition(requestBody, key)
+	oldValInf := mapping[k]
+
+	if conversionType.From == "unix" && conversionType.To == "isotime" {
+		unixStr := util.ConvertAnyToString(oldValInf)
+		unix, err := strconv.ParseInt(unixStr, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		t := time.Unix(unix, 0)
+		mapping[k] = t.UTC().Format(time.RFC3339Nano)
+	}
+
+	return nil
 }
 
 func addKeyToBody(m map[string]interface{}, key string, value interface{}) {
@@ -118,6 +145,12 @@ func (m *BodyModifier) ModifyResponse(res *http.Response) error {
 		mapValue(responseBody, key, valueMap)
 	}
 
+	for key, conversion := range m.valueConversion {
+		if err := convertValue(responseBody, key, conversion); err != nil {
+			return err
+		}
+	}
+
 	newResponse, err := json.Marshal(responseBody)
 	if err != nil {
 		return fmt.Errorf("unable to parse response after modified: %w", err)
@@ -135,7 +168,8 @@ func FromJSON(b []byte) (*BodyModifier, error) {
 	}
 
 	return &BodyModifier{
-		schema:       cfg.Schema,
-		valueMapping: cfg.ValueMapping,
+		schema:          cfg.Schema,
+		valueMapping:    cfg.ValueMapping,
+		valueConversion: cfg.ValueConversion,
 	}, nil
 }
