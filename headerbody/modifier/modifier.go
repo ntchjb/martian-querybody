@@ -17,18 +17,18 @@ type HeaderBodyModifier struct {
 	keyMapping map[string]string
 }
 
-// ModifyRequest converts body to query parameters based on given key name mapping
+// ModifyResponse converts header to body based on given key name mapping
 func (m *HeaderBodyModifier) ModifyResponse(res *http.Response) error {
 	decoder := json.NewDecoder(res.Body)
-	var requestBody map[string]interface{}
-	err := decoder.Decode(&requestBody)
+	var responseBody map[string]interface{}
+	err := decoder.Decode(&responseBody)
 	if err != nil {
 		return fmt.Errorf("unable to parse request body: %w", err)
 	}
 
 	for headerKey, bodyKey := range m.keyMapping {
 		keys := strings.Split(bodyKey, ".")
-		obj := requestBody
+		obj := responseBody
 		var selectedKey string
 
 	loop:
@@ -51,7 +51,7 @@ func (m *HeaderBodyModifier) ModifyResponse(res *http.Response) error {
 		}
 	}
 
-	newResponse, err := json.Marshal(requestBody)
+	newResponse, err := json.Marshal(responseBody)
 	if err != nil {
 		return fmt.Errorf("unable to parse response after modified: %w", err)
 	}
