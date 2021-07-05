@@ -7,14 +7,18 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/ntchjb/martian-querybody/util"
 )
 
 type Config struct {
-	Schema []map[string]string `json:"schema"`
+	Schema       []map[string]string               `json:"schema"`
+	ValueMapping map[string]map[string]interface{} `json:"value_map"`
 }
 
 type BodyModifier struct {
-	schema []map[string]string
+	schema       []map[string]string
+	valueMapping map[string]map[string]interface{}
 }
 
 func getKeyPosition(m map[string]interface{}, key string) (map[string]interface{}, string) {
@@ -47,6 +51,16 @@ func moveKey(requestBody map[string]interface{}, oldKey string, newKey string, i
 	}
 	if newKey != "" {
 		addKeyToBody(requestBody, newKey, value)
+	}
+}
+
+func mapValue(requestBody map[string]interface{}, key string, valMap map[string]interface{}) {
+	mapping, k := getKeyPosition(requestBody, key)
+	oldValInf := mapping[k]
+
+	oldVal := util.ConvertAnyToString(oldValInf)
+	if newVal, ok := valMap[oldVal]; ok {
+		mapping[k] = newVal
 	}
 }
 
@@ -95,8 +109,13 @@ func (m *BodyModifier) ModifyResponse(res *http.Response) error {
 				newKey = newKeySplited[1]
 				isCopy = true
 			}
+
 			moveKey(responseBody, oldKey, newKey, isCopy)
 		}
+	}
+
+	for key, valueMap := range m.valueMapping {
+		mapValue(responseBody, key, valueMap)
 	}
 
 	newResponse, err := json.Marshal(responseBody)
@@ -116,6 +135,7 @@ func FromJSON(b []byte) (*BodyModifier, error) {
 	}
 
 	return &BodyModifier{
-		schema: cfg.Schema,
+		schema:       cfg.Schema,
+		valueMapping: cfg.ValueMapping,
 	}, nil
 }

@@ -44,7 +44,13 @@ func TestModifyResponse(t *testing.T) {
 			}, {
 				"key5": ""
 			}
-		]
+		],
+		"value_map": {
+			"key1.key2": {
+				"valueKey1": 1,
+				"valueKey2": 2
+			}
+		}
 	}`
 	modifier, err := FromJSON([]byte(cfg))
 	require.NoError(t, err)
@@ -54,5 +60,5 @@ func TestModifyResponse(t *testing.T) {
 
 	bodyBytes, err := ioutil.ReadAll(response.Body)
 	require.NoError(t, err)
-	require.Equal(t, "{\"key1\":{\"key2\":\"valueKey1\"},\"key2\":{\"key22\":\"valueKey22\"},\"key33\":{\"key3\":\"valueKey3\",\"key4\":\"valueKey4\"},\"key55\":\"valueKey55\",\"key66\":\"valueKey6\",\"key7\":\"valueKey7\",\"key77\":\"valueKey7\"}", string(bodyBytes))
+	require.Equal(t, "{\"key1\":{\"key2\":1},\"key2\":{\"key22\":\"valueKey22\"},\"key33\":{\"key3\":\"valueKey3\",\"key4\":\"valueKey4\"},\"key55\":\"valueKey55\",\"key66\":\"valueKey6\",\"key7\":\"valueKey7\",\"key77\":\"valueKey7\"}", string(bodyBytes))
 }
