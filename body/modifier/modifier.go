@@ -38,11 +38,13 @@ loop:
 	return selectedValue, selectedKey
 }
 
-func moveKey(requestBody map[string]interface{}, oldKey string, newKey string) {
+func moveKey(requestBody map[string]interface{}, oldKey string, newKey string, isCopy bool) {
 	mapping, key := getKeyPosition(requestBody, oldKey)
 
 	value := mapping[key]
-	delete(mapping, key)
+	if !isCopy {
+		delete(mapping, key)
+	}
 	if newKey != "" {
 		addKeyToBody(requestBody, newKey, value)
 	}
@@ -87,7 +89,13 @@ func (m *BodyModifier) ModifyResponse(res *http.Response) error {
 
 	for _, orderedGroup := range m.schema {
 		for oldKey, newKey := range orderedGroup {
-			moveKey(responseBody, oldKey, newKey)
+			var isCopy bool
+			if len(newKey) >= 2 && newKey[0] == ',' {
+				newKeySplited := strings.SplitN(newKey, ",", 2)
+				newKey = newKeySplited[1]
+				isCopy = true
+			}
+			moveKey(responseBody, oldKey, newKey, isCopy)
 		}
 	}
 
