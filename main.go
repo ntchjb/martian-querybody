@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/luraproject/lura/logging"
+	_ "github.com/ntchjb/martian-querybody/body"
 	_ "github.com/ntchjb/martian-querybody/bodyquery"
 	_ "github.com/ntchjb/martian-querybody/headerbody"
 	_ "github.com/ntchjb/martian-querybody/query"
